@@ -7,40 +7,92 @@
 //
 
 #import "TCAppDelegate.h"
+#import "TwitterDatabaseAvailability.h"
+
+@interface TCAppDelegate()
+
+@property (copy, nonatomic) void (^twitterDownloadBackgroundURLSessionCompletionHandler)();
+@property (strong, nonatomic) UIManagedDocument *managedDocument;
+@property (strong, nonatomic) NSManagedObjectContext *twitterDatabaseContext;
+
+@end
 
 @implementation TCAppDelegate
 
+#pragma mark - UIApplicationDelegate
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // Override point for customization after application launch.
-    return YES;
-}
-							
-- (void)applicationWillResignActive:(UIApplication *)application
-{
-    // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
-    // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
+  self.managedDocument = [self createManagedDocument];
+  
+  // Override point for customization after application launch.
+  return YES;
 }
 
-- (void)applicationDidEnterBackground:(UIApplication *)application
-{
-    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
-    // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+#pragma mark - coreData
+
+- (UIManagedDocument *) createManagedDocument {
+  
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+  NSURL *documentsDirectory = [[fileManager URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] firstObject];
+  NSString *documentName = @"twitterDatabaseDocument";
+  NSURL *url = [documentsDirectory URLByAppendingPathComponent:documentName];
+  UIManagedDocument *managedDocument = [[UIManagedDocument alloc] initWithFileURL:url];
+  
+  BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:[url path]];
+  
+  if( fileExists) {
+    [managedDocument openWithCompletionHandler:^(BOOL success){
+      if (!success) {
+        // Handle the error.
+      } else {
+        [self documentIsReady];
+      }
+    }];
+  } else {
+    [managedDocument saveToURL:url forSaveOperation:UIDocumentSaveForCreating completionHandler:^(BOOL success){
+      if (!success) {
+        // Handle the error.
+      } else {
+        [self documentIsReady];
+      }
+    }];
+    
+  }
+  return managedDocument;
+  
 }
 
-- (void)applicationWillEnterForeground:(UIApplication *)application
-{
-    // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+- (void) documentIsReady {
+  if (self.managedDocument.documentState == UIDocumentStateNormal) {
+    self.twitterDatabaseContext = self.managedDocument.managedObjectContext;
+  }
 }
 
-- (void)applicationDidBecomeActive:(UIApplication *)application
-{
-    // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+#pragma mark - database context
+
+- (void) setTwitterDatabaseContext:(NSManagedObjectContext *)twitterDatabaseContext {
+  _twitterDatabaseContext = twitterDatabaseContext;
+  
+  // every time the context changes, we'll restart our timer
+  // so kill (invalidate) the current one
+  // (we didn't get to this line of code in lecture, sorry!)
+  
+  if (self.twitterDatabaseContext)
+  {
+    // this timer will fire only when we are in the foreground
+    
+    
+    // let everyone who might be interested know this context is available
+    // this happens very early in the running of our application
+    // it would make NO SENSE to listen to this radio station in a View Controller that was segued to, for example
+    // (but that's okay because a segued-to View Controller would presumably be "prepared" by being given a context to work in)
+    NSDictionary *userInfo = self.twitterDatabaseContext ? @{ TwitterDatabaseAvailabilityContext : self.twitterDatabaseContext } : nil;
+    [[NSNotificationCenter defaultCenter] postNotificationName:TwitterDatabaseAvailabilityNotification
+                                                        object:self
+                                                      userInfo:userInfo];
+  }
 }
 
-- (void)applicationWillTerminate:(UIApplication *)application
-{
-    // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-}
 
 @end

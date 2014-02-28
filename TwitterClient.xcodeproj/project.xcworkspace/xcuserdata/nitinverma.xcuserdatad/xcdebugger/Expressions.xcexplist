@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "GLOBAL">
+         <PersistentStrings>
+            <PersistentString
+               value = "[NSString stringWithFormat:@&quot;%@&quot;,[tweetDetails valueForKeyPath:@&quot;text&quot;]]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "-[TweetViewController updateUI:]:TweetViewController.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.image">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "-[TwitterTableViewController tableView:heightForRowAtIndexPath:]:TwitterTableViewController.m">
+      </ContextState>
+      <ContextState
+         contextName = "-[TimelineTableViewController fetchTweets]:TimelineTableViewController.m">
+      </ContextState>
+      <ContextState
+         contextName = "-[TweetViewController setTweetDetails:]:TweetViewController.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "[tweetDetails valueForKeyPath:@&quot;name&quot;]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "-[TwitterTableViewController prepareTweetViewController:toDisplayTweet:]:TwitterTableViewController.m">
+      </ContextState>
+      <ContextState
+         contextName = "-[TCViewController viewDidLoad]:TCViewController.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "[[FHSTwitterEngine sharedEngine] isAuthorized]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "-[TwitterTableViewController prepareForSegue:sender:]:TwitterTableViewController.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.tweets[indexPath.row]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "__43-[TimelineTableViewController fetchTweets:]_block_invoke_2:TimelineTableViewController.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "-[TimelineTableViewController tableView:willDisplayCell:forRowAtIndexPath:]:TimelineTableViewController.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "po [NSString stringWithFormat:@&quot;%@&quot;,[[self.tweets lastObject] valueForKeyPath:@&quot;id&quot;]]">
+            </PersistentString>
+            <PersistentString
+               value = "[self.tweets count]">
+            </PersistentString>
+            <PersistentString
+               value = "[NSString stringWithFormat:@&quot;%@&quot;,[[self.tweets lastObject] valueForKeyPath:@&quot;id&quot;]]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "-[TimelineTableViewController fetchTweets:]:TimelineTableViewController.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "id == nil">
+            </PersistentString>
+            <PersistentString
+               value = "[id length]">
+            </PersistentString>
+            <PersistentString
+               value = "(id == nil)">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "__33-[TweetViewController fetchImage]_block_invoke_2:TweetViewController.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.image">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "__42-[TimelineTableViewController fetchTweets]_block_invoke:TimelineTableViewController.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "[timelineTweets[0] isKindOfClass:[NSDictionary class]]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "-[FHSTwitterEngine getProfileImageForUsername:andSize:]:FHSTwitterEngine.m">
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>
