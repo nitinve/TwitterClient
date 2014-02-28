@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import <CoreText/CoreText.h>
+#import "CoreDataTableViewController.h"
 
 @interface TwitterTableViewController : UITableViewController
 

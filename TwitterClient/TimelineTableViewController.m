@@ -41,6 +41,7 @@
   
 	[self fetchTweets];
 }
+
 - (void) viewWillAppear: (BOOL) animated
 {
   [super viewWillAppear: animated];
@@ -61,20 +62,6 @@
   }
   
 }
-//-(void)scrollViewDidScroll:(UIScrollView *)scrollView {
-//  NSLog(@" navbar height %f", self.navigationController.navigationBar.frame.size.height);
-//  NSLog(@" scrollView contentOffset %f", scrollView.contentOffset.y );
-//  NSLog(@"scrollview contentSize - : %f", roundf(scrollView.contentSize.height-scrollView.frame.size.height));
-//
-//  if (scrollView.contentOffset.y == roundf(scrollView.contentSize.height-scrollView.frame.size.height)) {
-//    NSLog(@"we are at the endddd");
-//    [self fetchOldTweets : [NSString stringWithFormat:@"%@",[[self.tweets lastObject] valueForKeyPath:@"id"]]];
-//
-//    //Call your function here...
-//
-//  }
-//}
-
 
 -(IBAction)fetchNewTweets{
   [self.refreshControl beginRefreshing];
@@ -82,8 +69,7 @@
     @autoreleasepool {
       NSMutableArray *timelineTweets = nil;
       timelineTweets = [[FHSTwitterEngine sharedEngine]getHomeTimelineSinceID:[NSString stringWithFormat:@"%@",[[self.tweets firstObject] valueForKeyPath:@"id"]] count:50];
-      //            NSLog(@"Timeline results : %@", timelineTweets);
-      dispatch_async(dispatch_get_main_queue(), ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
         [self.refreshControl endRefreshing];
         NSArray *tempArray = [timelineTweets arrayByAddingObjectsFromArray:self.tweets];
         self.tweets = [tempArray mutableCopy];
@@ -108,15 +94,13 @@
   });
 }
 
-
-
 -(IBAction)fetchTweets {
   [self.refreshControl beginRefreshing];
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     @autoreleasepool {
       NSArray *timelineTweets = nil;
       timelineTweets = [[FHSTwitterEngine sharedEngine]getHomeTimelineSinceID:@"" count:50];
-                  NSLog(@"Timeline results : %@", timelineTweets);
+      NSLog(@"Timeline results : %@", timelineTweets);
       dispatch_async(dispatch_get_main_queue(), ^{
         [self.refreshControl endRefreshing];
         NSArray *tempArray = [self.tweets arrayByAddingObjectsFromArray:timelineTweets];
