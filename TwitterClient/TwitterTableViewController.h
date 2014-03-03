@@ -14,4 +14,6 @@
 
 @property (nonatomic, strong) NSMutableArray *tweets; //Tweets
 
++ (NSString *)htmlEntityDecode:(NSString *)string;
+
 @end

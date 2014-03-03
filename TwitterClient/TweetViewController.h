@@ -7,9 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Tweet.h"
+#import "User.h"
 
 @interface TweetViewController : UIViewController
 
-@property (strong, nonatomic) NSDictionary *tweetDetails;
+@property (strong, nonatomic) Tweet *tweetDetails;
 
 @end

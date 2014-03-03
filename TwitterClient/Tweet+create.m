@@ -29,7 +29,7 @@
   
   NSString *tweetId = tweetInfo[@"id_str"];
   NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Tweet"];
-  request.predicate = [NSPredicate predicateWithFormat:@"id = %@", tweetId];
+  request.predicate = [NSPredicate predicateWithFormat:@"tweetId = %@", tweetId];
   
   NSError *error;
   NSArray *matches = [context executeFetchRequest:request error:&error];
@@ -42,7 +42,7 @@
     tweet = [NSEntityDescription insertNewObjectForEntityForName:@"Tweet"
                                           inManagedObjectContext:context];
     tweet.tweetId = tweetId;
-    tweet.text = [Tweet htmlEntityDecode:[tweet valueForKeyPath:@"text"]];
+    tweet.text = [Tweet htmlEntityDecode:[tweetInfo valueForKeyPath:@"text"]];
     
     NSDictionary *userInfo = [tweetInfo valueForKeyPath:@"user"];
     

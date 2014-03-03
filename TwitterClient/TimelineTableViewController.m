@@ -10,10 +10,17 @@
 #import "TimelineTableViewController.h"
 #import "FHSTwitterEngine.h"
 #import "TwitterDatabaseAvailability.h"
+#import "Tweet+create.h"
+#import "TCAppDelegate.h"
+#import "Tweet.h"
+#import "User.h"
+#import "UITweetCell.h"
 
 @interface TimelineTableViewController ()
 
 @property (nonatomic) NSInteger previousRowIndex;
+@property (nonatomic) NSString *maxTweetId;
+@property (nonatomic) NSString *minTweetId;
 @property (nonatomic) NSManagedObjectContext *twitterDatabaseContext;
 
 
@@ -23,99 +30,89 @@
 @implementation TimelineTableViewController
 
 - (void)awakeFromNib {
+  
+  TCAppDelegate *appDelegate = (TCAppDelegate *) [[UIApplication sharedApplication] delegate];
+  if (appDelegate.twitterDatabaseContext != nil) {
+    self.twitterDatabaseContext = appDelegate.twitterDatabaseContext;
+  }
+  
   [[NSNotificationCenter defaultCenter] addObserverForName:TwitterDatabaseAvailabilityNotification
                                                     object:nil
                                                      queue:nil
                                                 usingBlock:^(NSNotification *notification) {
                                                   self.twitterDatabaseContext = notification.userInfo[TwitterDatabaseAvailabilityContext];
                                                 }];
+  
 }
 
--(void) setTwitterDatabaseContext:(NSManagedObjectContext *)twitterDatabaseContext {
+- (void)setTwitterDatabaseContext:(NSManagedObjectContext *)twitterDatabaseContext {
   
   _twitterDatabaseContext = twitterDatabaseContext;
   
   NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Tweet"];
-  request.predicate = nil;
-  request.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"id"
+  request.predicate = [NSPredicate predicateWithFormat:@"(NOT tweetOwner.screenName LIKE[c] 'nitinverma2510')"];
+  request.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"tweetId"
                                                             ascending:NO
                                                              selector:@selector(localizedStandardCompare:)]];
   
   
   
-//  self.fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:request
-//                                                                      managedObjectContext:twitterDatabaseContext
-//                                                                        sectionNameKeyPath:nil
-//                                                                                 cacheName:nil];
-//  
+  self.fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:request
+                                                                      managedObjectContext:twitterDatabaseContext
+                                                                        sectionNameKeyPath:nil
+                                                                                 cacheName:nil];
+  [self startFetchingTweets];
+  
 }
 
-
-
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
   [super viewDidLoad];
   UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
-  [refreshControl addTarget:self action:@selector(fetchNewTweets) forControlEvents:UIControlEventValueChanged];
+  [refreshControl addTarget:self action:@selector(startFetchingNewTweets) forControlEvents:UIControlEventValueChanged];
   self.refreshControl = refreshControl;
-  
-  
-	[self fetchTweets];
-}
-
-- (void) viewWillAppear: (BOOL) animated
-{
-  [super viewWillAppear: animated];
-  
-  //    self.tableView.contentOffset = CGPointMake(0, -self.refreshControl.frame.size.height);
-  //    [self.refreshControl beginRefreshing];
-  
-  // kick off your async refresh!
-  //    [self fetchTweets];
 }
 
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
   if (!self.previousRowIndex) self.previousRowIndex = indexPath.row;
-  else if (self.previousRowIndex < indexPath.row && indexPath.row == [self.tweets count]-10) {
+  else if (self.previousRowIndex < indexPath.row && indexPath.row == [self.tableView numberOfRowsInSection:0]-10) {
     self.previousRowIndex = indexPath.row;
-    NSString *test = [NSString stringWithFormat:@"%@",[[self.tweets lastObject] valueForKeyPath:@"id"]];
-    [self fetchOldTweets:test];
+    [self startFetchingOldTweets];
   }
   
 }
 
--(IBAction)fetchNewTweets{
-  [self.refreshControl beginRefreshing];
-  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-    @autoreleasepool {
-      NSMutableArray *timelineTweets = nil;
-      timelineTweets = [[FHSTwitterEngine sharedEngine]getHomeTimelineSinceID:[NSString stringWithFormat:@"%@",[[self.tweets firstObject] valueForKeyPath:@"id"]] count:50];
-      dispatch_async(dispatch_get_main_queue(), ^{
-        [self.refreshControl endRefreshing];
-        NSArray *tempArray = [timelineTweets arrayByAddingObjectsFromArray:self.tweets];
-        self.tweets = [tempArray mutableCopy];
-      });
-    }
-  });
+#pragma mark - Table view delegate
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+  Tweet *tweet = [self.fetchedResultsController objectAtIndexPath:indexPath];
+  NSString *tweetText = tweet.text;
+  CGRect r = [tweetText boundingRectWithSize:CGSizeMake(250, 0)
+                                     options:NSStringDrawingUsesLineFragmentOrigin
+                                  attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:14]}
+                                     context:nil];
+  return r.size.height + 50;
 }
 
--(IBAction)fetchOldTweets:(NSString *)id {
-  [self.refreshControl beginRefreshing];
-  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-    @autoreleasepool {
-      NSMutableArray *timelineTweets = nil;
-      timelineTweets = [[FHSTwitterEngine sharedEngine]getHomeTimelineWithMaxID:id count:50];
-      [timelineTweets removeObjectAtIndex:0];
-      dispatch_async(dispatch_get_main_queue(), ^{
-        [self.refreshControl endRefreshing];
-        NSArray *tempArray = [self.tweets arrayByAddingObjectsFromArray:timelineTweets];
-        self.tweets = [tempArray mutableCopy];
-      });
-    }
-  });
+#pragma mark - Table view data source
+
+//- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+//  // Return the number of rows in the section.
+//  return [self.tweets count];
+//}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+  static NSString *CellIdentifier = @"Tweet Cell";
+  UITweetCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
+  
+  // Configure the cell...
+  Tweet *tweet = [self.fetchedResultsController objectAtIndexPath:indexPath];
+  
+  cell.handle.text = tweet.tweetOwner.screenName ? tweet.tweetOwner.screenName : @"";
+  cell.tweetText.text = [TwitterTableViewController htmlEntityDecode:tweet.text];
+  return cell;
 }
 
--(IBAction)fetchTweets {
+
+- (IBAction)fetchTweets {
   [self.refreshControl beginRefreshing];
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     @autoreleasepool {
@@ -130,4 +127,76 @@
     }
   });
 }
+
+#pragma mark - TwitterFetching
+
+- (void)startFetchingTweets
+{
+  [self.refreshControl beginRefreshing];
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    @autoreleasepool {
+      NSArray *timelineTweets = nil;
+      timelineTweets = [[FHSTwitterEngine sharedEngine]getHomeTimelineSinceID:@"" count:50];
+      self.maxTweetId = (NSString *)((NSDictionary *)[timelineTweets firstObject])[@"id_str"];
+      self.minTweetId = (NSString *)((NSDictionary *)[timelineTweets lastObject])[@"id_str"];
+//      NSLog(@"Timeline results : %@", timelineTweets);
+      [self loadTweetsFromArray:timelineTweets intoContext:self.twitterDatabaseContext];
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [self.refreshControl endRefreshing];
+      });
+    }
+  });
+}
+
+- (IBAction)startFetchingOldTweets {
+  [self.refreshControl beginRefreshing];
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    @autoreleasepool {
+      NSMutableArray *timelineTweets = nil;
+      timelineTweets = [[FHSTwitterEngine sharedEngine]getHomeTimelineWithMaxID:self.minTweetId count:50];
+      [timelineTweets removeObjectAtIndex:0];
+      NSLog(@"Timeline results : %@", timelineTweets);
+      if ([timelineTweets lastObject]) {
+        self.minTweetId = (NSString *)((NSDictionary *)[timelineTweets lastObject])[@"id_str"];
+      }
+      [self loadTweetsFromArray:timelineTweets intoContext:self.twitterDatabaseContext];
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [self.refreshControl endRefreshing];
+      });
+    }
+  });
+}
+
+- (IBAction)startFetchingNewTweets {
+  [self.refreshControl beginRefreshing];
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    @autoreleasepool {
+      NSMutableArray *timelineTweets = nil;
+      timelineTweets = [[FHSTwitterEngine sharedEngine]getHomeTimelineSinceID:self.maxTweetId count:50];
+      if ([timelineTweets firstObject]) {
+        self.maxTweetId = (NSString *)((NSDictionary *)[timelineTweets firstObject])[@"id_str"];
+      }
+      [self loadTweetsFromArray:timelineTweets intoContext:self.twitterDatabaseContext];
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [self.refreshControl endRefreshing];
+      });
+    }
+  });
+}
+
+
+- (void)startFetchingTweets:(NSTimer *)timer {
+  [self startFetchingTweets];
+}
+
+- (void)loadTweetsFromArray:(NSArray *)tweets
+                intoContext:(NSManagedObjectContext *)context {
+  if (context) {
+    [context performBlock:^{
+      [Tweet loadTweetsFromTweetsArray:tweets
+                inManagedObjectContext:context];
+    }];
+  }
+}
+
 @end
