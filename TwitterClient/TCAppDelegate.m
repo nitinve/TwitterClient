@@ -8,8 +8,11 @@
 
 #import "TCAppDelegate.h"
 #import "TwitterDatabaseAvailability.h"
+#import "Tweet+create.h"
+#import "User+create.h"
+#import "FHSTwitterEngine.h"
 
-@interface TCAppDelegate()<NSURLSessionDownloadDelegate>
+@interface TCAppDelegate()<NSURLSessionDownloadDelegate, FHSTwitterEngineAccessTokenDelegate>
 
 @property (copy, nonatomic) void (^tweetDownloadBackgroundURLSessionCompletionHandler)();
 @property (strong, nonatomic) NSURLSession *twitterDownloadSession;
@@ -21,7 +24,7 @@
 @end
 
 // name of the Twitter fetching background download session
-#define TWITTER_FETCH @"Twitter Just Uploaded Fetch"
+#define TWEET_FETCH @"Twitter Just Uploaded Fetch"
 
 // how often (in seconds) we fetch new photos if we are in the foreground
 #define FOREGROUND_TWITTER_FETCH_INTERVAL (5*60)
@@ -35,12 +38,28 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  [[FHSTwitterEngine sharedEngine]permanentlySetConsumerKey:@"kP9U1BZZxTgWk7hNHXavgw" andSecret:@"S7qaZpgycMPKMARdo6nTQpnq4LbeEQnpBzGnM2mrIMQ"];
+  [[FHSTwitterEngine sharedEngine]setDelegate:self];
+  [[FHSTwitterEngine sharedEngine]loadAccessToken];
+
   [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:UIApplicationBackgroundFetchIntervalMinimum];
   
   self.managedDocument = [self createManagedDocument];
   
+//  [self startFetchingTweets];
+  
   // Override point for customization after application launch.
   return YES;
+}
+
+#pragma mark - FHSTwitterDelegate
+
+- (void)storeAccessToken:(NSString *)accessToken {
+  [[NSUserDefaults standardUserDefaults]setObject:accessToken forKey:@"SavedAccessHTTPBody"];
+}
+
+- (NSString *)loadAccessToken {
+  return [[NSUserDefaults standardUserDefaults]objectForKey:@"SavedAccessHTTPBody"];
 }
 
 #pragma mark - coreData
@@ -87,7 +106,7 @@
 
 - (void) setTwitterDatabaseContext:(NSManagedObjectContext *)twitterDatabaseContext {
   _twitterDatabaseContext = twitterDatabaseContext;
- 
+  
   // every time the context changes, we'll restart our timer
   // so kill (invalidate) the current one
   // (we didn't get to this line of code in lecture, sorry!)
@@ -108,6 +127,99 @@
   }
 }
 
+#pragma mark - TwitterFetching
+
+- (void)startFetchingTweets
+{
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    @autoreleasepool {
+      NSArray *timelineTweets = nil;
+      timelineTweets = [[FHSTwitterEngine sharedEngine]getHomeTimelineSinceID:@"" count:50];
+      NSLog(@"Timeline results : %@", timelineTweets);
+      [self loadTweetsFromArray:timelineTweets intoContext:self.twitterDatabaseContext andThenExecuteBlock:^{
+        [self tweetDownloadTasksMightBeComplete];
+      }];
+      dispatch_async(dispatch_get_main_queue(), ^{
+      });
+    }
+  });
+}
+
+- (void)startFetchingTweets:(NSTimer *)timer // NSTimer target/action always takes an NSTimer as an argument
+{
+  [self startFetchingTweets];
+}
+
+// the getter for the flickrDownloadSession @property
+
+- (NSURLSession *)twitterDownloadSession // the NSURLSession we will use to fetch Flickr data in the background
+{
+  if (!_twitterDownloadSession) {
+    static dispatch_once_t onceToken; // dispatch_once ensures that the block will only ever get executed once per application launch
+    dispatch_once(&onceToken, ^{
+      // notice the configuration here is "backgroundSessionConfiguration:"
+      // that means that we will (eventually) get the results even if we are not the foreground application
+      // even if our application crashed, it would get relaunched (eventually) to handle this URL's results!
+      NSURLSessionConfiguration *urlSessionConfig = [NSURLSessionConfiguration backgroundSessionConfiguration:TWEET_FETCH];
+      _twitterDownloadSession = [NSURLSession sessionWithConfiguration:urlSessionConfig
+                                                              delegate:self    // we MUST have a delegate for background configurations
+                                                         delegateQueue:nil];   // nil means "a random, non-main-queue queue"
+    });
+  }
+  return _twitterDownloadSession;
+}
+
+// standard "get photo information from Flickr URL" code
+
+- (NSArray *)tweetsAtURL:(NSURL *)url
+{
+  NSDictionary *tweetPropertyList;
+  NSData *tweetJSONData = [NSData dataWithContentsOfURL:url];  // will block if url is not local!
+  if (tweetJSONData) {
+    tweetPropertyList = [NSJSONSerialization JSONObjectWithData:tweetJSONData
+                                                        options:0
+                                                          error:NULL];
+  }
+  return [tweetPropertyList valueForKeyPath:@"tweets"];
+}
+
+// gets the Flickr photo dictionaries out of the url and puts them into Core Data
+// this was moved here after lecture to give you an example of how to declare a method that takes a block as an argument
+// and because we now do this both as part of our background session delegate handler and when background fetch happens
+
+- (void)loadTweetsFromLocalURL:(NSURL *)localFile
+                   intoContext:(NSManagedObjectContext *)context
+           andThenExecuteBlock:(void(^)())whenDone
+{
+  if (context) {
+    NSArray *tweets = [self tweetsAtURL:localFile];
+    [context performBlock:^{
+      [Tweet loadTweetsFromTweetsArray:tweets
+                inManagedObjectContext:context];
+      [context save:NULL]; // NOT NECESSARY if this is a UIManagedDocument's context
+      if (whenDone) whenDone();
+    }];
+  } else {
+    if (whenDone) whenDone();
+  }
+}
+
+- (void)loadTweetsFromArray:(NSArray *)tweets
+                intoContext:(NSManagedObjectContext *)context
+        andThenExecuteBlock:(void(^)())whenDone {
+  if (context) {
+    [context performBlock:^{
+      [Tweet loadTweetsFromTweetsArray:tweets
+                inManagedObjectContext:context];
+      [context save:NULL]; // NOT NECESSARY if this is a UIManagedDocument's context
+      if (whenDone) whenDone();
+    }];
+  } else {
+    if (whenDone) whenDone();
+  }
+}
+
+
 #pragma mark - NSURLSessionDownloadDelegate
 
 // required by the protocol
@@ -116,14 +228,14 @@
 didFinishDownloadingToURL:(NSURL *)localFile
 {
   // we shouldn't assume we're the only downloading going on ...
-  if ([downloadTask.taskDescription isEqualToString:TWITTER_FETCH]) {
+  if ([downloadTask.taskDescription isEqualToString:TWEET_FETCH]) {
     // ... but if this is the Flickr fetching, then process the returned data
-//    [self loadTweetsFromLocalURL:localFile
-//                           intoContext:self.twitterDatabaseContext
-//                   andThenExecuteBlock:^{
-//                     [self tweetDownloadTasksMightBeComplete];
-//                   }
-//     ];
+    [self loadTweetsFromLocalURL:localFile
+                     intoContext:self.twitterDatabaseContext
+             andThenExecuteBlock:^{
+               [self tweetDownloadTasksMightBeComplete];
+             }
+     ];
   }
 }
 

@@ -31,6 +31,27 @@
                                                 }];
 }
 
+-(void) setTwitterDatabaseContext:(NSManagedObjectContext *)twitterDatabaseContext {
+  
+  _twitterDatabaseContext = twitterDatabaseContext;
+  
+  NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Tweet"];
+  request.predicate = nil;
+  request.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"id"
+                                                            ascending:NO
+                                                             selector:@selector(localizedStandardCompare:)]];
+  
+  
+  
+//  self.fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:request
+//                                                                      managedObjectContext:twitterDatabaseContext
+//                                                                        sectionNameKeyPath:nil
+//                                                                                 cacheName:nil];
+//  
+}
+
+
+
 - (void)viewDidLoad
 {
   [super viewDidLoad];
@@ -69,7 +90,7 @@
     @autoreleasepool {
       NSMutableArray *timelineTweets = nil;
       timelineTweets = [[FHSTwitterEngine sharedEngine]getHomeTimelineSinceID:[NSString stringWithFormat:@"%@",[[self.tweets firstObject] valueForKeyPath:@"id"]] count:50];
-        dispatch_async(dispatch_get_main_queue(), ^{
+      dispatch_async(dispatch_get_main_queue(), ^{
         [self.refreshControl endRefreshing];
         NSArray *tempArray = [timelineTweets arrayByAddingObjectsFromArray:self.tweets];
         self.tweets = [tempArray mutableCopy];

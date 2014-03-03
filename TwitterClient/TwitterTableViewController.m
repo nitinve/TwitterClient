@@ -65,7 +65,8 @@
     
     // Configure the cell...
     NSDictionary *tweet = self.tweets[indexPath.row];
-    
+//  NSDictionary *tweet = [self.fetchedResultsController objectAtIndexPath:indexPath];
+  
     cell.handle.text = [[tweet valueForKeyPath:@"user"] valueForKeyPath:@"screen_name"];
     cell.tweetText.text = [TwitterTableViewController htmlEntityDecode:[tweet valueForKeyPath:@"text"]];
     return cell;

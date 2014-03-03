@@ -13,7 +13,7 @@
 #import "FHSTwitterEngine.h"
 #import "TTBViewController.h"
 
-@interface TCViewController () <FHSTwitterEngineAccessTokenDelegate, UIAlertViewDelegate>
+@interface TCViewController () <UIAlertViewDelegate>
 @property (weak, nonatomic) IBOutlet UIActivityIndicatorView *spinner;
 @property (weak, nonatomic) IBOutlet UIButton *signInButton;
 
@@ -21,17 +21,11 @@
 
 @implementation TCViewController
 
-
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     self.signInButton.hidden = true;
     [self.spinner startAnimating];
-    
-    [[FHSTwitterEngine sharedEngine]permanentlySetConsumerKey:@"kP9U1BZZxTgWk7hNHXavgw" andSecret:@"S7qaZpgycMPKMARdo6nTQpnq4LbeEQnpBzGnM2mrIMQ"];
-    [[FHSTwitterEngine sharedEngine]setDelegate:self];
-    [[FHSTwitterEngine sharedEngine]loadAccessToken];
-	// Do any additional setup after loading the view, typically from a nib.
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -47,15 +41,6 @@
         
     }
 }
-
-- (void)storeAccessToken:(NSString *)accessToken {
-    [[NSUserDefaults standardUserDefaults]setObject:accessToken forKey:@"SavedAccessHTTPBody"];
-}
-
-- (NSString *)loadAccessToken {
-    return [[NSUserDefaults standardUserDefaults]objectForKey:@"SavedAccessHTTPBody"];
-}
-
 - (void)loginOAuth {
     UIViewController *loginController = [[FHSTwitterEngine sharedEngine]loginControllerWithCompletionHandler:^(BOOL success) {
         NSLog(success?@"L0L success":@"O noes!!! Loggen faylur!!!");
@@ -67,9 +52,6 @@
 - (IBAction)presentTTBViewController{
     UIStoryboard *storyboard = self.storyboard;
     TTBViewController *twitterTabBar = [storyboard instantiateViewControllerWithIdentifier:@"TTBViewController"];
-    
-    // Configure the new view controller here.
-    
     [self presentViewController:twitterTabBar animated:NO completion:nil];
 }
 

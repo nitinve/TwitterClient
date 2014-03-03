@@ -10,7 +10,7 @@
 #import <CoreText/CoreText.h>
 #import "CoreDataTableViewController.h"
 
-@interface TwitterTableViewController : UITableViewController
+@interface TwitterTableViewController : CoreDataTableViewController
 
 @property (nonatomic, strong) NSMutableArray *tweets; //Tweets
 
