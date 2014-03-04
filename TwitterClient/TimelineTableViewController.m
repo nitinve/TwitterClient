@@ -19,7 +19,7 @@
 
 @end
 
-#define FOREGROUND_TIMELINE_FETCH_INTERVAL (5*60)
+#define FOREGROUND_TIMELINE_FETCH_INTERVAL (2*60)
 
 @implementation TimelineTableViewController
 

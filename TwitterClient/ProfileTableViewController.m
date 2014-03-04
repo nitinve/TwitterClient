@@ -19,7 +19,7 @@
 @property (strong, nonatomic) NSTimer *profileForegroundFetchTimer;
 @end
 
-#define FOREGROUND_PROFILE_FETCH_INTERVAL (5*60)
+#define FOREGROUND_PROFILE_FETCH_INTERVAL (2*60)
 
 @implementation ProfileTableViewController
 
