@@ -58,8 +58,9 @@
 - (void)setTwitterDatabaseContext:(NSManagedObjectContext *)twitterDatabaseContext {
   _twitterDatabaseContext = twitterDatabaseContext;
   
+  NSString *screenName = [[NSUserDefaults standardUserDefaults] valueForKeyPath:@"screen_name"];
   NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Tweet"];
-  request.predicate = [NSPredicate predicateWithFormat:@"(tweetOwner.screenName LIKE[c] 'nitinverma2510')"];
+  request.predicate = [NSPredicate predicateWithFormat:@"(tweetOwner.screenName LIKE[c] %@)", screenName];
   request.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"tweetId"
                                                             ascending:NO
                                                              selector:@selector(localizedStandardCompare:)]];
@@ -88,6 +89,8 @@
                      action:@selector(startFetchingNewTweets)
            forControlEvents:UIControlEventValueChanged];
   self.refreshControl = refreshControl;
+  self.profileImage.image = [UIImage imageWithData:[[NSUserDefaults standardUserDefaults] valueForKeyPath:@"profile_image"]];
+  self.handle.text = [[NSUserDefaults standardUserDefaults] valueForKeyPath:@"name"];
   [self fetchProfileImage];
 }
 
@@ -183,6 +186,7 @@
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     @autoreleasepool {
       NSMutableDictionary *store = [[FHSTwitterEngine sharedEngine]getProfileImageAndNameForUserID:[[FHSTwitterEngine sharedEngine]authenticatedID] andSize:FHSTwitterEngineImageSizeBigger];
+      [[NSUserDefaults standardUserDefaults] setValuesForKeysWithDictionary:store];
       dispatch_async(dispatch_get_main_queue(), ^{
         self.profileImage.image = [UIImage imageWithData:[store valueForKeyPath:@"profile_image"]];
         self.handle.text = [store valueForKeyPath:@"name"];

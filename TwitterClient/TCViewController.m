@@ -43,7 +43,8 @@
 }
 - (void)loginOAuth {
   UIViewController *loginController = [[FHSTwitterEngine sharedEngine]loginControllerWithCompletionHandler:^(BOOL success) {
-    NSLog(success?@"L0L success":@"O noes!!! Loggen faylur!!!");
+    NSMutableDictionary *profile = [[FHSTwitterEngine sharedEngine]getProfileImageAndNameForUserID:[[FHSTwitterEngine sharedEngine]authenticatedID] andSize:FHSTwitterEngineImageSizeBigger];
+    [[NSUserDefaults standardUserDefaults] setValuesForKeysWithDictionary:profile];
     self.signInButton.hidden = true;
   }];
   [self presentViewController:loginController animated:YES completion:nil];

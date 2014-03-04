@@ -48,8 +48,9 @@
 - (void)setTwitterDatabaseContext:(NSManagedObjectContext *)twitterDatabaseContext {
   _twitterDatabaseContext = twitterDatabaseContext;
   
+  NSString *screenName = [[NSUserDefaults standardUserDefaults] valueForKeyPath:@"screen_name"];
   NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Tweet"];
-  request.predicate = [NSPredicate predicateWithFormat:@"(NOT tweetOwner.screenName LIKE[c] 'nitinverma2510')"];
+  request.predicate = [NSPredicate predicateWithFormat:@"(NOT tweetOwner.screenName LIKE[c] %@)", screenName];
   request.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"tweetId"
                                                             ascending:NO
                                                              selector:@selector(localizedStandardCompare:)]];
