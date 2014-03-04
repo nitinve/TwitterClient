@@ -39,7 +39,7 @@
             
             if ([returned isKindOfClass:[NSError class]]) {
                 NSError *error = (NSError *)returned;
-                title = [NSString stringWithFormat:@"Error %d",error.code];
+                title = [NSString stringWithFormat:@"Error %d",(int)error.code];
                 message = error.localizedDescription;
             } else {
                 NSLog(@"%@",returned);

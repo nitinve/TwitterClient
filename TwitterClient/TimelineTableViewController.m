@@ -22,10 +22,12 @@
 @property (nonatomic) NSString *maxTweetId;
 @property (nonatomic) NSString *minTweetId;
 @property (nonatomic) NSManagedObjectContext *twitterDatabaseContext;
-
-
+@property (nonatomic) NSTimer *timelineForegroundFetchTimer;
 
 @end
+
+#define FOREGROUND_TIMELINE_FETCH_INTERVAL (5*60)
+
 
 @implementation TimelineTableViewController
 
@@ -67,6 +69,15 @@
                                                                       managedObjectContext:twitterDatabaseContext
                                                                         sectionNameKeyPath:nil
                                                                                  cacheName:nil];
+  if (self.twitterDatabaseContext)
+  {
+    // this timer will fire only when we are in the foreground
+    self.timelineForegroundFetchTimer = [NSTimer scheduledTimerWithTimeInterval:FOREGROUND_TIMELINE_FETCH_INTERVAL
+                                                                       target:self
+                                                                     selector:@selector(startFetchingNewTweets:)
+                                                                     userInfo:nil
+                                                                      repeats:YES];
+  }
   [self startFetchingTweets];
   
 }
@@ -118,6 +129,11 @@
 }
 
 #pragma mark - TwitterFetching
+
+
+- (void)startFetchingNewTweets:(NSTimer *)timer {
+  [self startFetchingNewTweets];
+}
 
 - (void)startFetchingTweets
 {
@@ -171,11 +187,6 @@
       });
     }
   });
-}
-
-
-- (void)startFetchingTweets:(NSTimer *)timer {
-  [self startFetchingTweets];
 }
 
 - (void)loadTweetsFromArray:(NSArray *)tweets

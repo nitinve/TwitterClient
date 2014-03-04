@@ -24,7 +24,10 @@
 @property (strong, nonatomic) NSString *maxTweetId;
 @property (strong, nonatomic) NSString *minTweetId;
 @property (nonatomic) NSInteger previousRowIndex;
+@property (strong, nonatomic) NSTimer *profileForegroundFetchTimer;
 @end
+
+#define FOREGROUND_PROFILE_FETCH_INTERVAL (5*60)
 
 @implementation ProfileTableViewController
 
@@ -75,6 +78,17 @@
                                                                       managedObjectContext:twitterDatabaseContext
                                                                         sectionNameKeyPath:nil
                                                                                  cacheName:nil];
+  
+  if (self.twitterDatabaseContext)
+  {
+    // this timer will fire only when we are in the foreground
+    self.profileForegroundFetchTimer = [NSTimer scheduledTimerWithTimeInterval:FOREGROUND_PROFILE_FETCH_INTERVAL
+                                                                         target:self
+                                                                       selector:@selector(startFetchingNewTweets:)
+                                                                       userInfo:nil
+                                                                        repeats:YES];
+  }
+
   [self startFetchingTweets];
   
 }
@@ -138,6 +152,10 @@
 
 #pragma mark - TwitterFetching
 
+- (void)startFetchingNewTweets:(NSTimer *)timer {
+  [self startFetchingNewTweets];
+}
+
 - (void)startFetchingTweets
 {
   [self.refreshControl beginRefreshing];
@@ -191,11 +209,6 @@
       });
     }
   });
-}
-
-
-- (void)startFetchingTweets:(NSTimer *)timer {
-  [self startFetchingTweets];
 }
 
 - (void)loadTweetsFromArray:(NSArray *)tweets
