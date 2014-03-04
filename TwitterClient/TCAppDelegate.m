@@ -37,6 +37,16 @@
   return YES;
 }
 
+- (void)applicationWillEnterForeground:(UIApplication *)application
+{
+  NSLog(@"will enter foreground");
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application
+{
+  NSLog(@"became active");
+}
+
 #pragma mark - FHSTwitterDelegate
 
 - (void)storeAccessToken:(NSString *)accessToken {

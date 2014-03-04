@@ -50,6 +50,12 @@
                                                 usingBlock:^(NSNotification *notification) {
                                                   self.twitterDatabaseContext = notification.userInfo[TwitterDatabaseAvailabilityContext];
                                                 }];
+  [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
+                                                    object:nil
+                                                     queue:nil
+                                                usingBlock:^(NSNotification *notification) {
+                                                  [self startFetchingTweets];
+                                                }];
   
 }
 

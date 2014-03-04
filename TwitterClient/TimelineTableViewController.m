@@ -42,6 +42,12 @@
                                                 usingBlock:^(NSNotification *notification) {
                                                   self.twitterDatabaseContext = notification.userInfo[TwitterDatabaseAvailabilityContext];
                                                 }];
+  [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
+                                                    object:nil
+                                                     queue:nil
+                                                usingBlock:^(NSNotification *notification) {
+                                                  [self startFetchingTweets];
+                                                }];
   
 }
 
@@ -111,23 +117,6 @@
   return cell;
 }
 
-
-- (IBAction)fetchTweets {
-  [self.refreshControl beginRefreshing];
-  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-    @autoreleasepool {
-      NSArray *timelineTweets = nil;
-      timelineTweets = [[FHSTwitterEngine sharedEngine]getHomeTimelineSinceID:@"" count:50];
-      NSLog(@"Timeline results : %@", timelineTweets);
-      dispatch_async(dispatch_get_main_queue(), ^{
-        [self.refreshControl endRefreshing];
-        NSArray *tempArray = [self.tweets arrayByAddingObjectsFromArray:timelineTweets];
-        self.tweets = [tempArray mutableCopy];
-      });
-    }
-  });
-}
-
 #pragma mark - TwitterFetching
 
 - (void)startFetchingTweets
@@ -139,7 +128,7 @@
       timelineTweets = [[FHSTwitterEngine sharedEngine]getHomeTimelineSinceID:@"" count:50];
       self.maxTweetId = (NSString *)((NSDictionary *)[timelineTweets firstObject])[@"id_str"];
       self.minTweetId = (NSString *)((NSDictionary *)[timelineTweets lastObject])[@"id_str"];
-//      NSLog(@"Timeline results : %@", timelineTweets);
+      //      NSLog(@"Timeline results : %@", timelineTweets);
       [self loadTweetsFromArray:timelineTweets intoContext:self.twitterDatabaseContext];
       dispatch_async(dispatch_get_main_queue(), ^{
         [self.refreshControl endRefreshing];
