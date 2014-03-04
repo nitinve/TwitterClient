@@ -11,17 +11,6 @@
 
 @implementation Tweet (create)
 
-+ (NSString *)htmlEntityDecode:(NSString *)string
-{
-  string = [string stringByReplacingOccurrencesOfString:@"&quot;" withString:@"\""];
-  string = [string stringByReplacingOccurrencesOfString:@"&apos;" withString:@"'"];
-  string = [string stringByReplacingOccurrencesOfString:@"&amp;" withString:@"&"];
-  string = [string stringByReplacingOccurrencesOfString:@"&lt;" withString:@"<"];
-  string = [string stringByReplacingOccurrencesOfString:@"&gt;" withString:@">"];
-  
-  return string;
-}
-
 + (Tweet *)tweetWithTweetInfo:(NSDictionary *)tweetInfo
        inManagedObjectContext:(NSManagedObjectContext *)context {
   
@@ -42,13 +31,12 @@
     tweet = [NSEntityDescription insertNewObjectForEntityForName:@"Tweet"
                                           inManagedObjectContext:context];
     tweet.tweetId = tweetId;
-    tweet.text = [Tweet htmlEntityDecode:[tweetInfo valueForKeyPath:@"text"]];
+    tweet.text = [tweetInfo valueForKeyPath:@"text"];
     
     NSDictionary *userInfo = [tweetInfo valueForKeyPath:@"user"];
     
     tweet.tweetOwner = [User userWithUserInfo:userInfo
                        inManagedObjectContext:context];
-    
   }
   return tweet;
 }
@@ -58,7 +46,6 @@
   for (NSDictionary *tweetInfo in tweets) {
     [self tweetWithTweetInfo:tweetInfo inManagedObjectContext:context];
   }
-  
 }
 
 @end

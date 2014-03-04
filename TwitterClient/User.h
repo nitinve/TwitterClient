@@ -20,6 +20,7 @@
 @property (nonatomic, retain) NSSet *tweets;
 @property (nonatomic, retain) NSSet *followers;
 @property (nonatomic, retain) NSSet *following;
+
 @end
 
 @interface User (CoreDataGeneratedAccessors)

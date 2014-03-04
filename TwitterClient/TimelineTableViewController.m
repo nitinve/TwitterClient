@@ -8,32 +8,24 @@
 //
 
 #import "TimelineTableViewController.h"
-#import "FHSTwitterEngine.h"
-#import "TwitterDatabaseAvailability.h"
-#import "Tweet+create.h"
-#import "TCAppDelegate.h"
-#import "Tweet.h"
-#import "User.h"
-#import "UITweetCell.h"
 
 @interface TimelineTableViewController ()
 
-@property (nonatomic) NSInteger previousRowIndex;
-@property (nonatomic) NSString *maxTweetId;
-@property (nonatomic) NSString *minTweetId;
-@property (nonatomic) NSManagedObjectContext *twitterDatabaseContext;
-@property (nonatomic) NSTimer *timelineForegroundFetchTimer;
+@property (nonatomic) NSInteger *previousRowIndex;
+@property (strong, nonatomic) NSString *maxTweetId;
+@property (strong, nonatomic) NSString *minTweetId;
+@property (strong, nonatomic) NSManagedObjectContext *twitterDatabaseContext;
+@property (strong, nonatomic) NSTimer *timelineForegroundFetchTimer;
 
 @end
 
 #define FOREGROUND_TIMELINE_FETCH_INTERVAL (5*60)
 
-
 @implementation TimelineTableViewController
 
 - (void)awakeFromNib {
-  
   TCAppDelegate *appDelegate = (TCAppDelegate *) [[UIApplication sharedApplication] delegate];
+  
   if (appDelegate.twitterDatabaseContext != nil) {
     self.twitterDatabaseContext = appDelegate.twitterDatabaseContext;
   }
@@ -44,17 +36,16 @@
                                                 usingBlock:^(NSNotification *notification) {
                                                   self.twitterDatabaseContext = notification.userInfo[TwitterDatabaseAvailabilityContext];
                                                 }];
+  
   [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
                                                     object:nil
                                                      queue:nil
                                                 usingBlock:^(NSNotification *notification) {
                                                   [self startFetchingTweets];
                                                 }];
-  
 }
 
 - (void)setTwitterDatabaseContext:(NSManagedObjectContext *)twitterDatabaseContext {
-  
   _twitterDatabaseContext = twitterDatabaseContext;
   
   NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Tweet"];
@@ -63,73 +54,40 @@
                                                             ascending:NO
                                                              selector:@selector(localizedStandardCompare:)]];
   
-  
-  
   self.fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:request
                                                                       managedObjectContext:twitterDatabaseContext
                                                                         sectionNameKeyPath:nil
                                                                                  cacheName:nil];
-  if (self.twitterDatabaseContext)
-  {
-    // this timer will fire only when we are in the foreground
+  if (self.twitterDatabaseContext) {
     self.timelineForegroundFetchTimer = [NSTimer scheduledTimerWithTimeInterval:FOREGROUND_TIMELINE_FETCH_INTERVAL
-                                                                       target:self
-                                                                     selector:@selector(startFetchingNewTweets:)
-                                                                     userInfo:nil
-                                                                      repeats:YES];
+                                                                         target:self
+                                                                       selector:@selector(startFetchingNewTweets:)
+                                                                       userInfo:nil
+                                                                        repeats:YES];
   }
   [self startFetchingTweets];
-  
 }
 
 - (void)viewDidLoad {
   [super viewDidLoad];
   UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
-  [refreshControl addTarget:self action:@selector(startFetchingNewTweets) forControlEvents:UIControlEventValueChanged];
+  [refreshControl addTarget:self
+                     action:@selector(startFetchingNewTweets)
+           forControlEvents:UIControlEventValueChanged];
   self.refreshControl = refreshControl;
 }
 
+#pragma mark - TableView delegate
+
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
-  if (!self.previousRowIndex) self.previousRowIndex = indexPath.row;
-  else if (self.previousRowIndex < indexPath.row && indexPath.row == [self.tableView numberOfRowsInSection:0]-10) {
-    self.previousRowIndex = indexPath.row;
+  if (!self.previousRowIndex) self.previousRowIndex = (NSInteger *)indexPath.row;
+  else if ((int)self.previousRowIndex < indexPath.row && indexPath.row == [self.tableView numberOfRowsInSection:0]-10) {
+    self.previousRowIndex = (NSInteger *)indexPath.row;
     [self startFetchingOldTweets];
   }
-  
-}
-
-#pragma mark - Table view delegate
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-  Tweet *tweet = [self.fetchedResultsController objectAtIndexPath:indexPath];
-  NSString *tweetText = tweet.text;
-  CGRect r = [tweetText boundingRectWithSize:CGSizeMake(250, 0)
-                                     options:NSStringDrawingUsesLineFragmentOrigin
-                                  attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:14]}
-                                     context:nil];
-  return r.size.height + 50;
-}
-
-#pragma mark - Table view data source
-
-//- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-//  // Return the number of rows in the section.
-//  return [self.tweets count];
-//}
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-  static NSString *CellIdentifier = @"Tweet Cell";
-  UITweetCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-  
-  // Configure the cell...
-  Tweet *tweet = [self.fetchedResultsController objectAtIndexPath:indexPath];
-  
-  cell.handle.text = tweet.tweetOwner.screenName ? tweet.tweetOwner.screenName : @"";
-  cell.tweetText.text = [TwitterTableViewController htmlEntityDecode:tweet.text];
-  return cell;
 }
 
 #pragma mark - TwitterFetching
-
 
 - (void)startFetchingNewTweets:(NSTimer *)timer {
   [self startFetchingNewTweets];
@@ -188,6 +146,8 @@
     }
   });
 }
+
+#pragma mark - core data
 
 - (void)loadTweetsFromArray:(NSArray *)tweets
                 intoContext:(NSManagedObjectContext *)context {

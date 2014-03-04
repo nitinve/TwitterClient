@@ -9,7 +9,7 @@
 #ifndef TwitterClient_TwitterDatabaseAvailability_h
 #define TwitterClient_TwitterDatabaseAvailability_h
 
-#define TwitterDatabaseAvailabilityNotification @"TwitterDatabaseAvailabilityNotification"
+#define TwitterDatabaseAvailabilityNotification @"TwitterDatabaseAvailabilityNotification"          
 #define TwitterDatabaseAvailabilityContext @"Context"
 
 #endif

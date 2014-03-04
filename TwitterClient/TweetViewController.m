@@ -12,7 +12,7 @@
 @interface TweetViewController ()
 @property (weak, nonatomic) IBOutlet UILabel *twitterHandle;
 @property (weak, nonatomic) IBOutlet UITextView *tweetText;
-@property (strong, nonatomic) IBOutlet UIImageView *avatar;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView;
 @property (strong, nonatomic) UIImage *image;
 
 @end
@@ -30,35 +30,34 @@
   return string;
 }
 
-- (UIImageView *)avatar {
-  if(!_avatar) _avatar = [[UIImageView alloc] init];
-  return _avatar;
+- (UIImageView *)imageView {
+  if(!_imageView) _imageView = [[UIImageView alloc] init];
+  return _imageView;
 }
 
 - (UIImage *)image {
-  return self.avatar.image;
+  return self.imageView.image;
 }
 
 - (void)setImage:(UIImage *)image {
-  self.avatar.image = image;
+  self.imageView.image = image;
 }
 
-- (void) viewWillAppear:(BOOL)animated {
+- (void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
   [self updateUI:self.tweetDetails];
 }
 
-- (void) setTweetDetails:(Tweet *)tweetDetails {
+- (void)setTweetDetails:(Tweet *)tweetDetails {
   _tweetDetails = tweetDetails;
   [self fetchImage];
   if (self.view.window) [self updateUI:tweetDetails];
-  
 }
 
-- (void)updateUI : (Tweet *)tweetDetails {
+- (void)updateUI:(Tweet *)tweetDetails {
   self.twitterHandle.text = [NSString stringWithFormat:@"%@",tweetDetails.tweetOwner.screenName];
   self.tweetText.text = [TweetViewController htmlEntityDecode:[NSString stringWithFormat:@"%@",tweetDetails.text]];
-  if (self.image) self.avatar.image = self.image;
+  if (self.image) self.imageView.image = self.image;
 }
 
 - (void)fetchImage {
@@ -73,11 +72,9 @@
                                             }
                                           }];
   [task resume];
-  
 }
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
   [super viewDidLoad];
 	// Do any additional setup after loading the view.
 }

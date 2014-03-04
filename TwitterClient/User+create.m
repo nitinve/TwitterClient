@@ -41,9 +41,7 @@
       user = [matches lastObject];
     }
   }
-  
   return user;
-  
 }
 
 + (void)loadUsersFromUsersArray:(NSArray *)users

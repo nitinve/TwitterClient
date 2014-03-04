@@ -18,46 +18,41 @@
 
 @implementation TweetModalViewController
 
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-	[self.cancelButton addTarget:self action:@selector(oncancelButtonPressed) forControlEvents:UIControlEventTouchDown];
-    [self.postTweetButton addTarget:self action:@selector(postTweet) forControlEvents:UIControlEventTouchDown];
+- (void)viewDidLoad {
+  [super viewDidLoad];
+	[self.cancelButton addTarget:self action:@selector(dismissTweetModal) forControlEvents:UIControlEventTouchDown];
+  [self.postTweetButton addTarget:self action:@selector(postTweet) forControlEvents:UIControlEventTouchDown];
 }
 
--(void)oncancelButtonPressed {
-    [self.presentingViewController dismissViewControllerAnimated:YES completion:^{}];
+-(void)dismissTweetModal {
+  [self.presentingViewController dismissViewControllerAnimated:YES completion:^{}];
 }
+
 -(void)postTweet {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        @autoreleasepool {
-            NSString *tweet = self.editor.text;
-            id returned = [[FHSTwitterEngine sharedEngine]postTweet:tweet];
-            
-            NSString *title = nil;
-            NSString *message = nil;
-            
-            if ([returned isKindOfClass:[NSError class]]) {
-                NSError *error = (NSError *)returned;
-                title = [NSString stringWithFormat:@"Error %d",(int)error.code];
-                message = error.localizedDescription;
-            } else {
-                NSLog(@"%@",returned);
-                title = @"Tweet Posted";
-                message = tweet;
-            }
-            dispatch_sync(dispatch_get_main_queue(), ^{
-                [self oncancelButtonPressed];
-            });
-        }
-    });
-
-    
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    @autoreleasepool {
+      NSString *tweet = self.editor.text;
+      id returned = [[FHSTwitterEngine sharedEngine]postTweet:tweet];
+      
+      if ([returned isKindOfClass:[NSError class]]) {
+        NSError *error = (NSError *)returned;
+        NSLog(@"%@",[NSString stringWithFormat:@"Error %d",(int)error.code]);
+      } else {
+        NSLog(@"%@",returned);
+      }
+      dispatch_sync(dispatch_get_main_queue(), ^{
+        [self dismissTweetModal];
+      });
+    }
+  });
+  
+  
 }
+
 - (void)didReceiveMemoryWarning
 {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+  [super didReceiveMemoryWarning];
+  // Dispose of any resources that can be recreated.
 }
 
 @end

@@ -11,9 +11,9 @@
 @interface User (create)
 
 + (User *)userWithUserInfo:(NSDictionary *)userInfo
-       inManagedObjectContext:(NSManagedObjectContext *)context;
+    inManagedObjectContext:(NSManagedObjectContext *)context;
 
 + (void)loadUsersFromUsersArray:(NSArray *)users // of userInfo NSDictionary
-           inManagedObjectContext:(NSManagedObjectContext *)context;
+         inManagedObjectContext:(NSManagedObjectContext *)context;
 
 @end

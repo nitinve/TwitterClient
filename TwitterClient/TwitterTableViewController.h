@@ -9,10 +9,15 @@
 #import <UIKit/UIKit.h>
 #import <CoreText/CoreText.h>
 #import "CoreDataTableViewController.h"
+#import "FHSTwitterEngine.h"
+#import "TwitterDatabaseAvailability.h"
+#import "Tweet+create.h"
+#import "TCAppDelegate.h"
+#import "Tweet.h"
+#import "User.h"
+#import "UITweetCell.h"
 
 @interface TwitterTableViewController : CoreDataTableViewController
-
-@property (nonatomic, strong) NSMutableArray *tweets; //Tweets
 
 + (NSString *)htmlEntityDecode:(NSString *)string;
 

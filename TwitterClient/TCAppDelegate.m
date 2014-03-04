@@ -8,43 +8,28 @@
 
 #import "TCAppDelegate.h"
 #import "TwitterDatabaseAvailability.h"
-#import "Tweet+create.h"
-#import "User+create.h"
 #import "FHSTwitterEngine.h"
 
 @interface TCAppDelegate()<FHSTwitterEngineAccessTokenDelegate>
+
 @property (strong, nonatomic) UIManagedDocument *managedDocument;
+
 @end
 
 @implementation TCAppDelegate
 
 #pragma mark - UIApplicationDelegate
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-  [[FHSTwitterEngine sharedEngine]permanentlySetConsumerKey:@"kP9U1BZZxTgWk7hNHXavgw"
-                                                  andSecret:@"S7qaZpgycMPKMARdo6nTQpnq4LbeEQnpBzGnM2mrIMQ"];
-  [[FHSTwitterEngine sharedEngine]setDelegate:self];
-  [[FHSTwitterEngine sharedEngine]loadAccessToken];
-  
-  [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:UIApplicationBackgroundFetchIntervalMinimum];
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+  [[FHSTwitterEngine sharedEngine] permanentlySetConsumerKey:@"kP9U1BZZxTgWk7hNHXavgw"
+                                                   andSecret:@"S7qaZpgycMPKMARdo6nTQpnq4LbeEQnpBzGnM2mrIMQ"];
+  [[FHSTwitterEngine sharedEngine] setDelegate:self];
+  [[FHSTwitterEngine sharedEngine] loadAccessToken];
   
   self.managedDocument = [self createManagedDocument];
   
-  //  [self startFetchingTweets];
-  
   // Override point for customization after application launch.
   return YES;
-}
-
-- (void)applicationWillEnterForeground:(UIApplication *)application
-{
-  NSLog(@"will enter foreground");
-}
-
-- (void)applicationDidBecomeActive:(UIApplication *)application
-{
-  NSLog(@"became active");
 }
 
 #pragma mark - FHSTwitterDelegate
@@ -59,8 +44,7 @@
 
 #pragma mark - coreData
 
-- (UIManagedDocument *) createManagedDocument {
-  
+- (UIManagedDocument *)createManagedDocument {
   NSFileManager *fileManager = [NSFileManager defaultManager];
   NSURL *documentsDirectory = [[fileManager URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] firstObject];
   NSString *documentName = @"twitterDatabaseDocument";
@@ -72,7 +56,7 @@
   if( fileExists) {
     [managedDocument openWithCompletionHandler:^(BOOL success){
       if (!success) {
-        // Handle the error.
+        //Handle the error.
       } else {
         [self documentIsReady];
       }
@@ -85,13 +69,11 @@
         [self documentIsReady];
       }
     }];
-    
   }
   return managedDocument;
-  
 }
 
-- (void) documentIsReady {
+- (void)documentIsReady {
   if (self.managedDocument.documentState == UIDocumentStateNormal) {
     self.twitterDatabaseContext = self.managedDocument.managedObjectContext;
   }
@@ -99,12 +81,12 @@
 
 #pragma mark - database context
 
-- (void) setTwitterDatabaseContext:(NSManagedObjectContext *)twitterDatabaseContext {
+- (void)setTwitterDatabaseContext:(NSManagedObjectContext *)twitterDatabaseContext {
   _twitterDatabaseContext = twitterDatabaseContext;
   
-  if (self.twitterDatabaseContext)
-  {
-    NSDictionary *userInfo = self.twitterDatabaseContext ? @{ TwitterDatabaseAvailabilityContext : self.twitterDatabaseContext } : nil;
+  if (self.twitterDatabaseContext) {
+    NSDictionary *userInfo =
+    self.twitterDatabaseContext ? @{ TwitterDatabaseAvailabilityContext : self.twitterDatabaseContext } : nil;
     [[NSNotificationCenter defaultCenter] postNotificationName:TwitterDatabaseAvailabilityNotification
                                                         object:self
                                                       userInfo:userInfo];

@@ -23,42 +23,36 @@
 
 - (void)viewDidLoad
 {
-    [super viewDidLoad];
-    self.signInButton.hidden = true;
-    [self.spinner startAnimating];
+  [super viewDidLoad];
+  self.signInButton.hidden = true;
+  [self.spinner startAnimating];
 }
 
 - (void)viewDidAppear:(BOOL)animated
 {
-    if (![[FHSTwitterEngine sharedEngine] isAuthorized]) {
-        self.signInButton.hidden = false;
-        [self.signInButton addTarget:self action:@selector(loginOAuth) forControlEvents:UIControlEventTouchUpInside];
-        [self.spinner stopAnimating];
-        
-    } else {
-        [self presentTTBViewController];
-        [self.spinner stopAnimating];
-        
-    }
+  if (![[FHSTwitterEngine sharedEngine] isAuthorized]) {
+    self.signInButton.hidden = false;
+    [self.signInButton addTarget:self action:@selector(loginOAuth) forControlEvents:UIControlEventTouchUpInside];
+    [self.spinner stopAnimating];
+    
+  } else {
+    [self presentTTBViewController];
+    [self.spinner stopAnimating];
+    
+  }
 }
 - (void)loginOAuth {
-    UIViewController *loginController = [[FHSTwitterEngine sharedEngine]loginControllerWithCompletionHandler:^(BOOL success) {
-        NSLog(success?@"L0L success":@"O noes!!! Loggen faylur!!!");
-        self.signInButton.hidden = true;
-    }];
-    [self presentViewController:loginController animated:YES completion:nil];
+  UIViewController *loginController = [[FHSTwitterEngine sharedEngine]loginControllerWithCompletionHandler:^(BOOL success) {
+    NSLog(success?@"L0L success":@"O noes!!! Loggen faylur!!!");
+    self.signInButton.hidden = true;
+  }];
+  [self presentViewController:loginController animated:YES completion:nil];
 }
 
 - (IBAction)presentTTBViewController{
-    UIStoryboard *storyboard = self.storyboard;
-    TTBViewController *twitterTabBar = [storyboard instantiateViewControllerWithIdentifier:@"TTBViewController"];
-    [self presentViewController:twitterTabBar animated:NO completion:nil];
-}
-
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+  UIStoryboard *storyboard = self.storyboard;
+  TTBViewController *twitterTabBar = [storyboard instantiateViewControllerWithIdentifier:@"TTBViewController"];
+  [self presentViewController:twitterTabBar animated:NO completion:nil];
 }
 
 @end

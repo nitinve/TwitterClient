@@ -12,7 +12,8 @@
 @interface CoreDataTableViewController : UITableViewController <NSFetchedResultsControllerDelegate>
 
 @property (strong, nonatomic) NSFetchedResultsController *fetchedResultsController;
-
+// Set to YES to get some debugging output in the console.
+@property BOOL debug;
 // Causes the fetchedResultsController to refetch the data.
 // You almost certainly never need to call this.
 // The NSFetchedResultsController class observes the context
@@ -20,9 +21,5 @@
 //   since the NSFetchedResultsController will notice and update the table automatically).
 // This will also automatically be called if you change the fetchedResultsController @property.
 - (void)performFetch;
-
-// Set to YES to get some debugging output in the console.
-@property BOOL debug;
-
 
 @end

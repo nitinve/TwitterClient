@@ -10,27 +10,26 @@
 
 @implementation UITweetCell
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
-{
-    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
-    if (self) {
-       
-    }
-    return self;
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
+  self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+  return self;
 }
+
 -(UILabel *)tweetText {
-    if (!_tweetText) _tweetText = [[UILabel alloc] init];
-    return _tweetText;
+  if (!_tweetText) _tweetText = [[UILabel alloc] init];
+  return _tweetText;
 }
+
 -(UILabel *)handle {
-    if (!_handle) _handle = [[UILabel alloc] init];
-    return _handle;
+  if (!_handle) _handle = [[UILabel alloc] init];
+  return _handle;
 }
+
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
 {
-    [super setSelected:selected animated:animated];
-    
-    // Configure the view for the selected state
+  [super setSelected:selected animated:animated];
+  
+  // Configure the view for the selected state
 }
 
 @end
